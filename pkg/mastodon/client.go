@@ -35,6 +35,7 @@ type StatusAccount struct {
 	Username string `json:"username"`
 	Acct     string `json:"acct"`
 	Avatar   string `json:"avatar"`
+	URL      string `json:"url"`
 }
 
 type Status struct {
@@ -101,6 +102,7 @@ func convertStatus(serverURL string, i *mast.Status) Status {
 			Acct:     NormalizeAcct(serverURL, i.Account.Acct),
 			Username: i.Account.Username,
 			Avatar:   i.Account.AvatarStatic,
+			URL:      i.Account.URL,
 		},
 	}
 }
