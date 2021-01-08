@@ -30,7 +30,7 @@ func ParseStatusURL(ref string) (*StatusURL, error) {
 	return &u, nil
 }
 
-type StatusAccount struct {
+type Account struct {
 	ID       string `json:"id"`
 	Username string `json:"username"`
 	Acct     string `json:"acct"`
@@ -39,11 +39,11 @@ type StatusAccount struct {
 }
 
 type Status struct {
-	ID        string        `json:"id"`
-	Content   string        `json:"content"`
-	CreatedAt time.Time     `json:"created_at"`
-	URL       string        `json:"url"`
-	Account   StatusAccount `json:"account"`
+	ID        string    `json:"id"`
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"created_at"`
+	URL       string    `json:"url"`
+	Account   Account   `json:"account"`
 }
 
 type Client struct{}
@@ -83,6 +83,29 @@ func (c *Client) GetDescendants(ctx context.Context, u string) ([]Status, error)
 	return convertStatuses(su.Server, sc.Descendants), nil
 }
 
+func (c *Client) GetFavoritedBy(ctx context.Context, u string) ([]Account, error) {
+	su, err := ParseStatusURL(u)
+	if err != nil {
+		return nil, err
+	}
+	mc := mast.NewClient(&mast.Config{
+		Server: su.Server,
+	})
+	var result []*mast.Account
+	var page mast.Pagination
+	for {
+		accounts, err := mc.GetFavouritedBy(ctx, mast.ID(su.ID), &page)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, accounts...)
+		if page.MinID == "" {
+			break
+		}
+	}
+	return convertAccounts(su.Server, result), nil
+}
+
 func convertStatuses(serverURL string, input []*mast.Status) []Status {
 	converted := make([]Status, 0, len(input))
 	for _, i := range input {
@@ -97,12 +120,24 @@ func convertStatus(serverURL string, i *mast.Status) Status {
 		Content:   i.Content,
 		CreatedAt: i.CreatedAt,
 		URL:       i.URL,
-		Account: StatusAccount{
-			ID:       string(i.Account.ID),
-			Acct:     NormalizeAcct(serverURL, i.Account.Acct),
-			Username: i.Account.Username,
-			Avatar:   i.Account.AvatarStatic,
-			URL:      i.Account.URL,
-		},
+		Account:   convertAccount(serverURL, &i.Account),
+	}
+}
+
+func convertAccounts(serverURL string, accounts []*mast.Account) []Account {
+	result := make([]Account, 0, len(accounts))
+	for _, a := range accounts {
+		result = append(result, convertAccount(serverURL, a))
+	}
+	return result
+}
+
+func convertAccount(serverURL string, a *mast.Account) Account {
+	return Account{
+		ID:       string(a.ID),
+		Acct:     NormalizeAcct(serverURL, a.Acct),
+		Username: a.Username,
+		Avatar:   a.AvatarStatic,
+		URL:      a.URL,
 	}
 }

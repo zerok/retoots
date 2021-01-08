@@ -83,6 +83,25 @@ func (s *Server) handleGetDescendants(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(descendants)
 }
 
+func (s *Server) handleGetFavoritedBy(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	statusURL := r.URL.Query().Get("status")
+	if statusURL == "" {
+		http.Error(w, "no status URL", http.StatusBadRequest)
+		return
+	}
+	if !s.isFromAllowedRootAccount(ctx, statusURL) {
+		http.Error(w, "not allowed URL", http.StatusBadRequest)
+		return
+	}
+	favorites, err := s.mc.GetFavoritedBy(ctx, statusURL)
+	if err != nil {
+		http.Error(w, "failed", http.StatusBadRequest)
+	}
+	w.Header().Add("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(favorites)
+}
+
 func New(ctx context.Context, configurators ...Configurator) *Server {
 	cfg := Config{}
 	for _, configurator := range configurators {
@@ -100,5 +119,6 @@ func New(ctx context.Context, configurators ...Configurator) *Server {
 		allowedRootAccounts: cfg.AllowedRootAccounts,
 	}
 	router.Get("/api/v1/descendants", srv.handleGetDescendants)
+	router.Get("/api/v1/favorited_by", srv.handleGetFavoritedBy)
 	return srv
 }

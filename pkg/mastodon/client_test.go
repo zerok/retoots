@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -64,5 +65,25 @@ func TestGetDescendants(t *testing.T) {
 		require.Len(t, s, 1)
 		require.Equal(t, "123", s[0].ID)
 		require.Equal(t, "<p>hello</p>", s[0].Content)
+	})
+}
+
+func TestGetFavoritedBy(t *testing.T) {
+	c := New()
+	t.Run("non-empty", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprintf(w, `[{
+  "id": "123",
+  "username": "username",
+  "acct": "username"
+}]`)
+		}))
+		requestURL := fmt.Sprintf("%s/api/v1/statuses/123/favorited_by", srv.URL)
+		u, _ := url.Parse(srv.URL)
+		ctx := context.Background()
+		accounts, err := c.GetFavoritedBy(ctx, requestURL)
+		require.NoError(t, err)
+		require.Len(t, accounts, 1)
+		require.Equal(t, fmt.Sprintf("username@%s", u.Host), accounts[0].Acct)
 	})
 }
