@@ -1,0 +1,11 @@
+site_name: retoots!
+repo_url: https://github.com/zerok/retoots
+theme:
+  name: mkdocs
+  custom_dir: docs/_theme
+extra_css:
+  - _theme/css/custom.css
+site_url: https://zerok.github.com/retoots
+nav:
+  - Home: "index.md"
+  - Getting started: "getting-started.md"

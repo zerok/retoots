@@ -12,4 +12,10 @@ bin/retoots: $(shell find . -name '*.go') go.mod bin
 test:
 	go test ./... -v
 
-.PHONY: clean all test
+run-docs:
+	docker run --rm \
+		-v $(PWD):/data \
+		-p 8000:8000 \
+		zerok/mkdocs:latest serve -a 0.0.0.0:8000
+
+.PHONY: clean all test run-docs

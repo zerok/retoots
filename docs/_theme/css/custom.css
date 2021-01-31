@@ -1,0 +1,14 @@
+a {
+    color: #3088D4;
+}
+
+a:hover {
+    color: #3088D4;
+}
+.bg-primary {
+    background: #3088D4;
+    background-color: #3088D4 !important;
+}
+.dropdown-item:hover, .dropdown-item:focus {
+    background-color: #3088D4;
+}
