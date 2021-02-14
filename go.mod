@@ -5,6 +5,7 @@ go 1.15
 require (
 	github.com/go-chi/chi v1.5.1
 	github.com/go-chi/cors v1.1.1
+	github.com/hashicorp/golang-lru v0.5.4
 	github.com/matryer/is v1.4.0
 	github.com/mattn/go-mastodon v0.0.4
 	github.com/rs/zerolog v1.20.0

@@ -3,11 +3,13 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/zerok/retoots/pkg/mastodon"
 )
 
@@ -15,6 +17,7 @@ type Server struct {
 	r                   chi.Router
 	mc                  *mastodon.Client
 	allowedRootAccounts []string
+	rootCheckCache      *lru.Cache
 }
 
 type Configurator func(*Config)
@@ -48,19 +51,24 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) isFromAllowedRootAccount(ctx context.Context, u string) bool {
-	fmt.Sprintf("[%s]\n", s.allowedRootAccounts)
 	if s.allowedRootAccounts == nil || len(s.allowedRootAccounts) == 0 {
 		return true
 	}
+	if result, fromCache := s.rootCheckCache.Get(u); fromCache {
+		return result.(bool)
+	}
 	status, err := s.mc.GetStatus(ctx, u)
 	if err != nil {
+		s.rootCheckCache.Add(u, false)
 		return false
 	}
 	for _, a := range s.allowedRootAccounts {
 		if a == status.Account.Acct {
+			s.rootCheckCache.Add(u, true)
 			return true
 		}
 	}
+	s.rootCheckCache.Add(u, false)
 	return false
 }
 
@@ -69,6 +77,11 @@ func (s *Server) handleGetDescendants(w http.ResponseWriter, r *http.Request) {
 	statusURL := r.URL.Query().Get("status")
 	if statusURL == "" {
 		http.Error(w, "no status URL", http.StatusBadRequest)
+		return
+	}
+	statusURL, err := normalizeStatusURL(statusURL)
+	if err != nil {
+		http.Error(w, "not allowed URL", http.StatusBadRequest)
 		return
 	}
 	if !s.isFromAllowedRootAccount(ctx, statusURL) {
@@ -90,6 +103,11 @@ func (s *Server) handleGetFavoritedBy(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "no status URL", http.StatusBadRequest)
 		return
 	}
+	statusURL, err := normalizeStatusURL(statusURL)
+	if err != nil {
+		http.Error(w, "not allowed URL", http.StatusBadRequest)
+		return
+	}
 	if !s.isFromAllowedRootAccount(ctx, statusURL) {
 		http.Error(w, "not allowed URL", http.StatusBadRequest)
 		return
@@ -107,6 +125,11 @@ func (s *Server) handleInteractions(w http.ResponseWriter, r *http.Request) {
 	statusURL := r.URL.Query().Get("status")
 	if statusURL == "" {
 		http.Error(w, "no status URL", http.StatusBadRequest)
+		return
+	}
+	statusURL, err := normalizeStatusURL(statusURL)
+	if err != nil {
+		http.Error(w, "not allowed URL", http.StatusBadRequest)
 		return
 	}
 	if !s.isFromAllowedRootAccount(ctx, statusURL) {
@@ -144,13 +167,31 @@ func New(ctx context.Context, configurators ...Configurator) *Server {
 	})
 	router := chi.NewRouter()
 	router.Use(cors.Handler)
+
+	// lru.New can only fail if a negative size is provided.
+	cache, _ := lru.New(1024)
 	srv := &Server{
 		r:                   router,
 		mc:                  cfg.MastodonClient,
 		allowedRootAccounts: cfg.AllowedRootAccounts,
+		rootCheckCache:      cache,
 	}
 	router.Get("/api/v1/descendants", srv.handleGetDescendants)
 	router.Get("/api/v1/favorited_by", srv.handleGetFavoritedBy)
 	router.Get("/api/v1/interactions", srv.handleInteractions)
 	return srv
+}
+
+func normalizeStatusURL(statusURL string) (string, error) {
+	u, err := url.Parse(statusURL)
+	if err != nil {
+		return "", err
+	}
+	u.RawQuery = ""
+	pathElements := strings.Split(u.Path, "/")
+	if len(pathElements) > 3 {
+		pathElements = pathElements[:3]
+	}
+	u.Path = strings.Join(pathElements, "/") + "/"
+	return u.String(), nil
 }
