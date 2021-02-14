@@ -21,6 +21,8 @@ archives:
     files:
     - README.md
     - LICENSE
+signs:
+  - artifacts: checksum
 snapshot:
   name_template: SNAPSHOT-{{ .Commit }}
 checksum:
