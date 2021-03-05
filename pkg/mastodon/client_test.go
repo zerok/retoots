@@ -87,3 +87,23 @@ func TestGetFavoritedBy(t *testing.T) {
 		require.Equal(t, fmt.Sprintf("username@%s", u.Host), accounts[0].Acct)
 	})
 }
+
+func TestGetBoostedBy(t *testing.T) {
+	c := New()
+	t.Run("non-empty", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprintf(w, `[{
+  "id": "123",
+  "username": "username",
+  "acct": "username"
+}]`)
+		}))
+		requestURL := fmt.Sprintf("%s/api/v1/statuses/123/reblogged_by", srv.URL)
+		u, _ := url.Parse(srv.URL)
+		ctx := context.Background()
+		accounts, err := c.GetBoostedBy(ctx, requestURL)
+		require.NoError(t, err)
+		require.Len(t, accounts, 1)
+		require.Equal(t, fmt.Sprintf("username@%s", u.Host), accounts[0].Acct)
+	})
+}

@@ -144,16 +144,22 @@ func (s *Server) handleInteractions(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "failed", http.StatusBadRequest)
 	}
+	boosts, err := s.mc.GetBoostedBy(ctx, statusURL)
+	if err != nil {
+		http.Error(w, "failed", http.StatusBadRequest)
+	}
 	w.Header().Add("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(interactions{
 		Descendants: descendants,
 		FavoritedBy: favorites,
+		BoostedBy:   boosts,
 	})
 }
 
 type interactions struct {
 	Descendants []mastodon.Status  `json:"descendants"`
 	FavoritedBy []mastodon.Account `json:"favorited_by"`
+	BoostedBy   []mastodon.Account `json:"boosted_by"`
 }
 
 func New(ctx context.Context, configurators ...Configurator) *Server {

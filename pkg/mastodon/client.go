@@ -106,6 +106,29 @@ func (c *Client) GetFavoritedBy(ctx context.Context, u string) ([]Account, error
 	return convertAccounts(su.Server, result), nil
 }
 
+func (c *Client) GetBoostedBy(ctx context.Context, u string) ([]Account, error) {
+	su, err := ParseStatusURL(u)
+	if err != nil {
+		return nil, err
+	}
+	mc := mast.NewClient(&mast.Config{
+		Server: su.Server,
+	})
+	var result []*mast.Account
+	var page mast.Pagination
+	for {
+		accounts, err := mc.GetRebloggedBy(ctx, mast.ID(su.ID), &page)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, accounts...)
+		if page.MinID == "" {
+			break
+		}
+	}
+	return convertAccounts(su.Server, result), nil
+}
+
 func convertStatuses(serverURL string, input []*mast.Status) []Status {
 	converted := make([]Status, 0, len(input))
 	for _, i := range input {
