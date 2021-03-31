@@ -30,6 +30,9 @@ func main() {
 	}
 	logger := zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr}).With().Timestamp().Logger()
 	ctx := logger.WithContext(context.Background())
+	if len(allowedRootAccounts) == 0 {
+		logger.Fatal().Msg("No allowed root account specified.")
+	}
 	srv := http.Server{}
 	srv.Addr = addr
 	srv.Handler = server.New(ctx,
