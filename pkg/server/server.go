@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
-	lru "github.com/hashicorp/golang-lru"
+	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/zerok/retoots/pkg/mastodon"
 )
 
@@ -17,7 +17,7 @@ type Server struct {
 	r                   chi.Router
 	mc                  *mastodon.Client
 	allowedRootAccounts []string
-	rootCheckCache      *lru.Cache
+	rootCheckCache      *lru.Cache[string, bool]
 }
 
 type Configurator func(*Config)
@@ -55,7 +55,7 @@ func (s *Server) isFromAllowedRootAccount(ctx context.Context, u string) bool {
 		return true
 	}
 	if result, fromCache := s.rootCheckCache.Get(u); fromCache {
-		return result.(bool)
+		return result
 	}
 	status, err := s.mc.GetStatus(ctx, u)
 	if err != nil {
@@ -175,7 +175,7 @@ func New(ctx context.Context, configurators ...Configurator) *Server {
 	router.Use(cors.Handler)
 
 	// lru.New can only fail if a negative size is provided.
-	cache, _ := lru.New(1024)
+	cache, _ := lru.New[string, bool](1024)
 	srv := &Server{
 		r:                   router,
 		mc:                  cfg.MastodonClient,
