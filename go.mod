@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/go-chi/chi v1.5.1
-	github.com/go-chi/cors v1.1.1
+	github.com/go-chi/cors v1.2.1
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/mattn/go-mastodon v0.0.4
 	github.com/rs/zerolog v1.31.0
