@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/zerok/retoots/pkg/mastodon"
