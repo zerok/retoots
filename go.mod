@@ -6,7 +6,7 @@ require (
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/go-chi/cors v1.2.1
 	github.com/hashicorp/golang-lru/v2 v2.0.7
-	github.com/mattn/go-mastodon v0.0.8
+	github.com/mattn/go-mastodon v0.0.9
 	github.com/rs/zerolog v1.33.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0
