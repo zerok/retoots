@@ -5,6 +5,6 @@ WORKDIR /src
 RUN --mount=type=cache,target=/go/pkg/mod \
     make
 
-FROM alpine:3.21
+FROM alpine:3.22
 COPY --from=builder /src/bin/retoots /usr/local/bin/
 ENTRYPOINT ["/usr/local/bin/retoots"]
