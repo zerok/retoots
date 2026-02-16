@@ -1,4 +1,4 @@
-FROM golang:1.25.7-alpine as builder
+FROM golang:1.26.0-alpine as builder
 RUN mkdir /src && apk add --no-cache make
 COPY . /src
 WORKDIR /src
