@@ -35,7 +35,7 @@ jobs:
     # Define the tags for the newly built image
     - name: Docker meta
       id: meta
-      uses: docker/metadata-action@v5
+      uses: docker/metadata-action@v6
       with:
         images: |
           ghcr.io/zerok/retoots
