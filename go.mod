@@ -9,7 +9,7 @@ require (
 	github.com/go-chi/cors v1.2.2
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/mattn/go-mastodon v0.0.11
-	github.com/rs/zerolog v1.35.0
+	github.com/rs/zerolog v1.35.1
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.11.1
 )
