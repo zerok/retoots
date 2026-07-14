@@ -25,24 +25,24 @@ func TestGetDescendants(t *testing.T) {
 	numStatusCalls := 0
 	router.Get("/api/v1/statuses/123", func(w http.ResponseWriter, r *http.Request) {
 		numStatusCalls++
-		fmt.Fprintf(w, status123)
+		fmt.Fprint(w, status123)
 	})
 	router.Get("/api/v1/statuses/123/context", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, `{}`)
+		fmt.Fprint(w, `{}`)
 	})
 	router.Get("/api/v1/statuses/234", func(w http.ResponseWriter, r *http.Request) {
 		numStatusCalls++
-		fmt.Fprintf(w, status234)
+		fmt.Fprint(w, status234)
 	})
 	router.Get("/api/v1/statuses/234/context", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, `{}`)
+		fmt.Fprint(w, `{}`)
 	})
 	router.Get("/api/v1/statuses/1234", func(w http.ResponseWriter, r *http.Request) {
 		numStatusCalls++
-		fmt.Fprintf(w, status1234)
+		fmt.Fprint(w, status1234)
 	})
 	router.Get("/api/v1/statuses/1234/context", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, `{}`)
+		fmt.Fprint(w, `{}`)
 	})
 	msrv := httptest.NewServer(router)
 
